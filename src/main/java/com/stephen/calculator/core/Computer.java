@@ -20,7 +20,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
  **/
 @Data
 public class Computer {
-    private String priceList;
+    private String calcType;
     private int backflowCycle;
     private double financeAmount;
     private double rate;
@@ -28,9 +28,9 @@ public class Computer {
     private CalculatorHeader calculatorHeader;
     private List<CalculatorLine> lines;
 
-    public Computer(String priceList, int backflowCycle, CalculatorHeader calculatorHeader) {
+    public Computer(String calcType, int backflowCycle, CalculatorHeader calculatorHeader) {
         this.backflowCycle = backflowCycle;
-        this.priceList = priceList;
+        this.calcType = calcType;
         this.calculatorHeader = calculatorHeader;
         this.lines = new ArrayList<CalculatorLine>(this.calculatorHeader.getLeaseTimes() + 1);
 
@@ -43,9 +43,9 @@ public class Computer {
         this.calculatorHeader.setCalcSuccessful(CommonConstUtil.NO);
     }
 
-    public Computer(String priceList, int backflowCycle, CalculatorHeader calculatorHeader, List<CalculatorLine> lines) {
+    public Computer(String calcType, int backflowCycle, CalculatorHeader calculatorHeader, List<CalculatorLine> lines) {
         this.backflowCycle = backflowCycle;
-        this.priceList = priceList;
+        this.calcType = calcType;
         this.calculatorHeader = calculatorHeader;
         this.lines = lines;
 
@@ -141,6 +141,7 @@ public class Computer {
         IRR irr = new IRR(lines);
         calculatorHeader.setIrr(irr.compute() * calculatorHeader.getAnnualPayTimes());
         calculatorHeader.setRealIrr(irr.computeRealIrr(this.financeAmount, calculatorHeader.getBalloon(), calculatorHeader.getLeaseTimes()));
+
         //计算XIRR
         IRR xirr = new IRR(lines, true);
         calculatorHeader.setXirr(xirr.compute());
@@ -226,6 +227,13 @@ public class Computer {
             //占用天数
             int interestPeriodDays = (int) DAYS.between(calculatorHeader.getLeaseStartDate(), dueDate);
             line.setInterestPeriodDays(interestPeriodDays);
+            //先息后本需按天计算利息
+            if(CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)){
+                double eachInterest = (double) Math.round(interest * interestPeriodDays * 100) / 100;
+                double eachRental = eachInterest + principal;
+                line.setRental(eachRental);
+                line.setInterest(eachInterest);
+            }
 
             //项目期总余额
             line.setLeaseItemAmount((double) Math.round(principal * interestPeriodDays * 100) / 100);
@@ -323,6 +331,8 @@ public class Computer {
         double eachRental = Excel.pmt(rate, times, financeValue);
         double eachInterest = 0;
         double principal = 0;
+        double rental = 0;
+        double interest = 0;
         double usePrincipal = 0;
         //处理第0期
         saveCalculatorLine(0, 0.0, 0.0, 0.0);
@@ -341,10 +351,10 @@ public class Computer {
                 }
             }
 
-            eachInterest += balloonInterest;
-            eachRental += balloonInterest;
+            interest = eachInterest + balloonInterest;
+            rental = interest + principal;
 
-            saveCalculatorLine(i, eachRental, principal, eachInterest);
+            saveCalculatorLine(i, rental, principal, interest);
             usePrincipal += principal;
         }
 
@@ -355,7 +365,7 @@ public class Computer {
     }
 
     /**
-     * 等本等息
+     * 平息法
      *
      * @return
      */
@@ -399,6 +409,65 @@ public class Computer {
                 }
 
                 eachInterest = (double) Math.round((financeAmount - usePrincipal) * rate * 100) / 100;
+            }
+
+            eachRental = eachPrincipal + eachInterest;
+            usePrincipal += eachPrincipal;
+            saveCalculatorLine(i, eachRental, eachPrincipal, eachInterest);
+        }
+
+        //回写头信息
+        this.feedbackHeader();
+        calculatorHeader.setCalcSuccessful(CommonConstUtil.YES);
+        return this.lines;
+    }
+
+    /**
+     * 先息后本
+     *
+     * @return
+     */
+    public List<CalculatorLine> computeAppEase() {
+        //预处理头信息
+        this.processHeader();
+
+        //获取基础数据
+        int times = calculatorHeader.getLeaseTimes();
+        double financeValue = financeAmount - calculatorHeader.getBalloon();
+
+        //每期租金
+        double eachRate = calculatorHeader.getIntRate() / calculatorHeader.getCalculateDays();
+        double eachRental = 0;
+        double eachInterest = (double) Math.round(financeAmount * rate * 100) / 100;
+        double eachPrincipal = 0;
+        double usePrincipal = 0;
+        //处理第0期
+        saveCalculatorLine(0, 0.0, 0.0, 0.0);
+
+        //循环计算每期利息
+        for (int i = 1; i <= times; i++) {
+            if (backflowCycle == 0) {
+                if (i != times) {
+                    eachPrincipal = 0;
+                } else {
+                    eachPrincipal = financeValue;
+                }
+            } else {
+                if (i % backflowCycle == 0) {
+                    if (i != times) {
+                        eachPrincipal = (double) Math.round(financeValue * 100 / Math.ceil(times / backflowCycle)) / 100;
+                    } else {
+                        eachPrincipal = (double) Math.round((financeValue - usePrincipal) * 100) / 100;
+                    }
+                } else {
+                    if (i != times) {
+                        eachPrincipal = 0;
+                    } else {
+                        eachPrincipal = (double) Math.round((financeValue - usePrincipal) * 100) / 100;
+                    }
+                }
+
+                eachInterest = (double) Math.round((financeAmount - usePrincipal) * eachRate * 100) / 100;
             }
 
             eachRental = eachPrincipal + eachInterest;
@@ -461,6 +530,9 @@ public class Computer {
      * 重算头表信息
      */
     public void recomputer() {
+        //处理头信息
+        processHeader();
+
         //重算行信息
         resaveCalculatorLine();
 

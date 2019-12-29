@@ -148,7 +148,7 @@ public class IRR {
         CalculatorLine zeroLine = new CalculatorLine();
         zeroLine.setTimes(time);
         zeroLine.setDueDate(this.lines.get(0).getDueDate());
-        zeroLine.setRental(-1 * financeAmount);
+        zeroLine.setCashflowIrr(-1 * financeAmount);
         cashflowLists.add(zeroLine);
         time += 1;
 
@@ -164,11 +164,11 @@ public class IRR {
             }
 
             //处理间隔期
-            while (dueDate.until(currentDate, ChronoUnit.MONTHS) >= 1) {
+            while (dueDate.until(currentDate, ChronoUnit.MONTHS) > 1) {
                 CalculatorLine record = new CalculatorLine();
                 record.setTimes(time);
                 record.setDueDate(dueDate);
-                record.setRental(0D);
+                record.setCashflowIrr(0D);
                 cashflowLists.add(record);
 
                 time += 1;
@@ -176,24 +176,24 @@ public class IRR {
             }
 
             //处理当期
-            if(currentDate.compareTo(dueDate) <= 0){
+            if(dueDate.compareTo(currentDate) <= 0){
                 CalculatorLine record = new CalculatorLine();
                 record.setTimes(time);
                 record.setDueDate(currentDate);
-                record.setRental(currentRental + balloon);
+                record.setCashflowIrr(currentRental + balloon);
                 cashflowLists.add(record);
 
                 time += 1;
             }
         }
 
-        // TOTO : 输出数组
-        cashflowLists.forEach(item ->{
-            System.out.println("第" + item.getTimes() + "期，金额：" + item.getRental() + ";");
+        cashflowLists.forEach(item -> {
+            System.out.println("第" + item.getTimes() + "期"+ item.getDueDate() +"，现金流量：" + item.getRental());
         });
 
         IRR realIrr = new IRR(cashflowLists);
-        irr = realIrr.compute();
+        irr = realIrr.compute() * 12;
+        System.out.println("实际IRR: " + irr);
         return irr;
     }
 }

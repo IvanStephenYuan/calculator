@@ -28,8 +28,10 @@ public class CommonConstUtil {
     public final static String EQUAL_PAYMENT = "EQUAL_PAYMENT";
     //等额本金
     public final static String EQUAL_PRINCIPAL = "EQUAL_PRINCIPAL";
-    //先息后本
+    //平息法
     public final static String EQUAL_INTEREST = "EQUAL_INTEREST";
+    //先息后法
+    public final static String APPEASE = "APPEASE";
     //任意现金流
     public final static String FREE_CASHFLOW = "FREE_CASHFLOW";
 

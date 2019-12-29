@@ -111,7 +111,7 @@ public class CalculatorHeaderService {
 
         //构建计算器
         List<CalculatorLine> lines;
-        Computer computer = new Computer(priceList.getPriceList(), priceList.getBackflowCycle(), calculatorHeader);
+        Computer computer = new Computer(priceList.getCalcType(), priceList.getBackflowCycle(), calculatorHeader);
         switch (priceList.getCalcType()) {
             case CommonConstUtil.EQUAL_PRINCIPAL:
                 //等额本金
@@ -122,8 +122,12 @@ public class CalculatorHeaderService {
                 lines = computer.computeEqualPayment();
                 break;
             case CommonConstUtil.EQUAL_INTEREST:
-                //等本等息
+                //平息法
                 lines = computer.computeEqualInterest();
+                break;
+            case CommonConstUtil.APPEASE:
+                //先息后本
+                lines = computer.computeAppEase();
                 break;
             case CommonConstUtil.FREE_CASHFLOW:
                 //任意现金流
@@ -162,7 +166,7 @@ public class CalculatorHeaderService {
             throw new ComputeException(CalcErrorCodeEnum.RECOMPUTE_CHECK_FAIL);
         }
 
-        Computer computer = new Computer(priceList.getPriceList(), priceList.getBackflowCycle(), calculatorHeader, lines);
+        Computer computer = new Computer(priceList.getCalcType(), priceList.getBackflowCycle(), calculatorHeader, lines);
         computer.recomputer();
 
         calculatorHeader = computer.getCalculatorHeader();
