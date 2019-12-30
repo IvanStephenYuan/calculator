@@ -32,9 +32,9 @@ public class CalculatorHeaderService {
 
     private boolean checkCalculatorHeader(CalculatorHeader calculatorHeader) {
         //组成报价至少需要租赁物价款、利率、支付频率、期数、税率、租赁开始日
-        if (calculatorHeader.getLeaseAmount() == 0 || calculatorHeader.getIntRate() == 0 ||
+        if (calculatorHeader.getLeaseAmount() == 0 || calculatorHeader.getIntRate() < 0 ||
                 calculatorHeader.getAnnualPayTimes() == 0 || calculatorHeader.getLeaseTimes() == 0 ||
-                calculatorHeader.getVatRate() == 0 || calculatorHeader.getLeaseStartDate() == null) {
+                calculatorHeader.getVatRate() < 0 || calculatorHeader.getLeaseStartDate() == null) {
             return false;
         }
 

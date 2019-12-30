@@ -29,7 +29,7 @@ public class IRR {
         this.lines = lines;
         this.guess = 0.5D;
         this.extend = false;
-        this.minimum = BigDecimal.valueOf(1.0E-7D);
+        this.minimum = BigDecimal.valueOf(1.0E-6D);
         this.round = new MathContext(18);
     }
 
@@ -37,7 +37,7 @@ public class IRR {
         this.lines = lines;
         this.guess = guess;
         this.extend = false;
-        this.minimum = BigDecimal.valueOf(1.0E-7D);
+        this.minimum = BigDecimal.valueOf(1.0E-6D);
         this.round = new MathContext(18);
     }
 
@@ -45,7 +45,7 @@ public class IRR {
         this.lines = lines;
         this.guess = 0.5D;
         this.extend = extend;
-        this.minimum = BigDecimal.valueOf(1.0E-7D);
+        this.minimum = BigDecimal.valueOf(1.0E-6D);
         this.round = new MathContext(18);
     }
 
@@ -53,7 +53,7 @@ public class IRR {
         this.lines = lines;
         this.guess = guess;
         this.extend = extend;
-        this.minimum = BigDecimal.valueOf(1.0E-7D);
+        this.minimum = BigDecimal.valueOf(1.0E-6D);
         this.round = new MathContext(18);
     }
 
@@ -188,12 +188,16 @@ public class IRR {
         }
 
         cashflowLists.forEach(item -> {
-            System.out.println("第" + item.getTimes() + "期"+ item.getDueDate() +"，现金流量：" + item.getRental());
+            System.out.println("第" + item.getTimes() + "期"+ item.getDueDate() +"，现金流量：" + item.getCashflowIrr());
         });
 
         IRR realIrr = new IRR(cashflowLists);
-        irr = realIrr.compute() * 12;
-        System.out.println("实际IRR: " + irr);
+        double result = realIrr.compute();
+        if(result == Double.NaN){
+            result = 0.0D;
+        }
+        irr = result * 12;
+
         return irr;
     }
 }
