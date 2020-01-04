@@ -8,8 +8,10 @@ import com.stephen.util.CommonConstUtil;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -63,12 +65,14 @@ public class Computer {
      */
     private void processHeader() {
         //计算还款期限=期数*12/支付频率
-        calculatorHeader.setLeaseTerm((calculatorHeader.getLeaseTimes() * 12) / calculatorHeader.getAnnualPayTimes());
+        if (calculatorHeader.getAnnualPayTimes() != 0) {
+            calculatorHeader.setLeaseTerm((calculatorHeader.getLeaseTimes() * 12) / calculatorHeader.getAnnualPayTimes());
+        }
 
         //计算结束日期
         LocalDate startDate = calculatorHeader.getLeaseStartDate();
         LocalDate endDate = startDate.plusMonths(calculatorHeader.getLeaseTerm());
-        endDate = endDate.plusDays(-1);
+        endDate = endDate;
         calculatorHeader.setLeaseEndDate(endDate);
 
         //租赁物价款-首付款
@@ -140,11 +144,7 @@ public class Computer {
         //计算IRR
         IRR irr = new IRR(lines);
         calculatorHeader.setIrr(irr.compute() * calculatorHeader.getAnnualPayTimes());
-        calculatorHeader.setRealIrr(irr.computeRealIrr(this.financeAmount, calculatorHeader.getBalloon(), calculatorHeader.getLeaseTimes()));
-        //如果利率为空，但利息总和不为0，反写实际irr给利率
-        if(calculatorHeader.getIntRate() == 0 && calculatorHeader.getTotalInterest() > 0){
-            calculatorHeader.setIntRate(calculatorHeader.getIrr());
-        }
+        calculatorHeader.setRealIrr(irr.computeRealIrr(calculatorHeader.getLeaseTimes()));
 
         //计算XIRR
         IRR xirr = new IRR(lines, true);
@@ -174,6 +174,7 @@ public class Computer {
             line.setDownPayment(calculatorHeader.getDownPayment());
             line.setLeaseCharge(calculatorHeader.getLeaseCharge());
             line.setDeposit(calculatorHeader.getDeposit());
+            line.setPreInterest(calculatorHeader.getPreInterest());
 
             line.setCalcDate(calculatorHeader.getLeaseStartDate());
             line.setDueDate(calculatorHeader.getLeaseStartDate());
@@ -203,7 +204,7 @@ public class Computer {
             //}
 
             //处理IRR现金流
-            line.setCashflowIrr(-1 * (double) Math.round((financeAmount - line.getLeaseCharge() - line.getDeposit() - line.getOtherFee() - line.getOtherFee2() - line.getOtherFee3()) * 100) / 100);
+            line.setCashflowIrr(-1 * (double) Math.round((financeAmount - line.getLeaseCharge() - line.getDeposit() - line.getPreInterest() - line.getOtherFee() - line.getOtherFee2() - line.getOtherFee3()) * 100) / 100);
         } else {
             CalculatorLine lastLine = lines.get(time - 1);
             //剩余本金
@@ -218,11 +219,11 @@ public class Computer {
                 if (time == 1) {
                     dueDate = startDate;
                 } else {
-                    dueDate = startDate.plusDays(-1).plusMonths((12 / calculatorHeader.getAnnualPayTimes()) * (time - 1));
+                    dueDate = startDate.plusMonths((12 / calculatorHeader.getAnnualPayTimes()) * (time - 1));
                 }
             } else if (CommonConstUtil.AT_PAY_TYPE.equalsIgnoreCase(calculatorHeader.getPayType())) {
                 //后付
-                dueDate = startDate.plusDays(-1).plusMonths((12 / calculatorHeader.getAnnualPayTimes()) * (time));
+                dueDate = startDate.plusMonths((12 / calculatorHeader.getAnnualPayTimes()) * (time));
             }
 
             line.setCalcDate(dueDate);
@@ -232,7 +233,7 @@ public class Computer {
             int interestPeriodDays = (int) DAYS.between(calculatorHeader.getLeaseStartDate(), dueDate);
             line.setInterestPeriodDays(interestPeriodDays);
             //先息后本需按天计算利息
-            if(CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)){
+            if (CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)) {
                 //计算计息天数
                 int leaseDays = (int) DAYS.between(lastLine.getDueDate(), dueDate);
                 double eachInterest = (double) Math.round(interest * leaseDays * 100) / 100;
@@ -262,10 +263,10 @@ public class Computer {
 
 
             //本金 ：正租拆税，回租不拆税
-            if(CommonConstUtil.BUSINESS_TYPE_LEASE.equalsIgnoreCase(calculatorHeader.getBusinessType())){
+            if (CommonConstUtil.BUSINESS_TYPE_LEASE.equalsIgnoreCase(calculatorHeader.getBusinessType())) {
                 line.setNetPrincipal((double) Math.round(line.getPrincipal() * 100 / (1 + calculatorHeader.getVatRate())) / 100);
                 line.setVatPrincipal((double) Math.round((line.getPrincipal() - line.getNetPrincipal()) * 100) / 100);
-            }else{
+            } else {
                 line.setNetPrincipal(line.getPrincipal());
                 line.setVatPrincipal(0.0);
             }
@@ -350,9 +351,9 @@ public class Computer {
                 principal = (double) Math.round((eachRental - eachInterest) * 100) / 100;
             } else {
                 principal = (double) Math.round((financeValue - usePrincipal) * 100) / 100;
-                if(rate != 0){
+                if (rate != 0) {
                     eachInterest = (double) Math.round((eachRental - principal) * 100) / 100;
-                }else{
+                } else {
                     eachInterest = 0;
                 }
             }
@@ -386,7 +387,7 @@ public class Computer {
         //每期租金
         double eachRental = 0;
         double eachInterest = (double) Math.round(financeAmount * rate * 100) / 100;
-        double eachPrincipal = 0;
+        double eachPrincipal = (double) Math.round(financeValue * 100 / times) / 100;
         double usePrincipal = 0;
         //处理第0期
         saveCalculatorLine(0, 0.0, 0.0, 0.0);
@@ -395,9 +396,7 @@ public class Computer {
         for (int i = 1; i <= times; i++) {
             if (backflowCycle == 0) {
                 if (i != times) {
-                    eachPrincipal = 0;
-                } else {
-                    eachPrincipal = financeValue;
+                    eachPrincipal = (double) Math.round((financeValue - usePrincipal) * 100) / 100;
                 }
             } else {
                 if (i % backflowCycle == 0) {
@@ -443,7 +442,7 @@ public class Computer {
 
         //每期租金
         double eachRental = 0;
-        double eachInterest = (double) Math.round(financeAmount * calculatorHeader.getIntRate()  * 100 / calculatorHeader.getCalculateDays()) / 100;
+        double eachInterest = financeAmount * calculatorHeader.getIntRate() / calculatorHeader.getCalculateDays();
         double eachPrincipal = 0;
         double usePrincipal = 0;
         //处理第0期
@@ -472,7 +471,7 @@ public class Computer {
                     }
                 }
 
-                eachInterest = (double) Math.round((financeAmount - usePrincipal) * calculatorHeader.getIntRate()  * 100 / calculatorHeader.getCalculateDays()) / 100;
+                eachInterest = (financeAmount - usePrincipal) * calculatorHeader.getIntRate() * 100 / calculatorHeader.getCalculateDays();
             }
 
             eachRental = eachPrincipal + eachInterest;
@@ -492,6 +491,68 @@ public class Computer {
     private void resaveCalculatorLine() {
         double eachInterest = 0;
         double leaseDays = 0;
+
+        //通过还款计划，反算利率
+        boolean reSplit = false;
+        //构建均摊irr现金流量，0
+        List<CalculatorLine> shareLines = new ArrayList<CalculatorLine>();
+        CalculatorLine firstShareLine = lines.get(0);
+        firstShareLine.setCashflowIrr(-1 * financeAmount);
+        shareLines.add(firstShareLine);
+
+        int divideMonths = (int) (ChronoUnit.MONTHS.between(lines.get(0).getDueDate(), lines.get(lines.size() - 1).getDueDate()) / (lines.size() - 1));
+        //默认还款计划当期租金不为0的行数为期数
+        int leaseTimes = 0;
+        for (int t = 1; t < lines.size(); t++) {
+            CalculatorLine line = lines.get(t);
+            if (line.getPrincipal() + line.getInterest() != line.getRental() || line.getLeaseCharge() > 0 || line.getDeposit() > 0 || line.getOtherFee() > 0 || line.getOtherFee2() > 0 || line.getOtherFee3() > 0) {
+                reSplit = true;
+            }
+
+            ////构建均摊irr现金流量，i>=1
+            if (line.getRental() != 0) {
+                leaseTimes += 1;
+                line.setCashflowIrr(line.getRental());
+                shareLines.add(line);
+            }
+        }
+        //设置期数
+        calculatorHeader.setLeaseTimes(leaseTimes);
+        //通过shareLines得到均摊IRR
+        IRR shareIrr = new IRR(shareLines);
+        double shareRate = shareIrr.compute();
+        this.rate = shareRate;
+
+        //拆分标志为true，说明需要反算
+        if (reSplit) {
+            calculatorHeader.setAnnualPayTimes(12 / divideMonths);
+            calculatorHeader.setLeaseTerm(calculatorHeader.getLeaseTimes() * divideMonths);
+
+            //处理剩余本金
+            CalculatorLine firstLine = lines.get(0);
+            firstLine.setRental(0);
+            firstLine.setPrincipal(0);
+            firstLine.setInterest(0);
+            firstLine.setOutstandingPrincipal(financeAmount);
+            firstLine.setCashflowIrr(-1 * (double) Math.round((financeAmount - firstLine.getLeaseCharge() - firstLine.getDeposit() - firstLine.getPreInterest() - firstLine.getOtherFee() - firstLine.getOtherFee2() - firstLine.getOtherFee3()) * 100) / 100);
+            lines.set(0, firstLine);
+
+            //处理首期费用
+            //设置利率=均摊IRR
+            calculatorHeader.setIntRate(shareRate * calculatorHeader.getAnnualPayTimes());
+            //首付款+咨询费+保证金
+            calculatorHeader.setDownPayment(firstLine.getDownPayment());
+            calculatorHeader.setLeaseCharge(firstLine.getLeaseCharge());
+            calculatorHeader.setDeposit(firstLine.getDeposit());
+            calculatorHeader.setPreInterest(firstLine.getPreInterest());
+
+            //其他费用
+            calculatorHeader.setOtherFee(firstLine.getOtherFee());
+            calculatorHeader.setOtherFee2(firstLine.getOtherFee2());
+            calculatorHeader.setOtherFee3(firstLine.getOtherFee3());
+        }
+
+
         for (int i = 1; i < lines.size(); i++) {
             CalculatorLine line = lines.get(i);
             CalculatorLine lastLine = lines.get(i - 1);
@@ -507,13 +568,86 @@ public class Computer {
             int interestPeriodDays = (int) DAYS.between(calculatorHeader.getLeaseStartDate(), dueDate);
             line.setInterestPeriodDays(interestPeriodDays);
 
-            //如果是先息后本需重算利息
-            if(CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)){
-                //计算计息天数
-                leaseDays = (int) DAYS.between(lastLine.getDueDate(), dueDate);
-                eachInterest = (double) Math.round(financeAmount * calculatorHeader.getIntRate() * leaseDays  * 100 / calculatorHeader.getCalculateDays()) / 100;
-                line.setInterest(eachInterest);
-                line.setRental(line.getPrincipal() + line.getInterest());
+            //如果本金利息都为空，手工计算
+            if (reSplit) {
+                if (CommonConstUtil.EQUAL_PAYMENT.equalsIgnoreCase(calcType)) {
+                    //等额本息
+                    double financeValue = financeAmount - calculatorHeader.getBalloon();
+                    eachInterest = Excel.ipmt(rate, i, calculatorHeader.getLeaseTimes(), financeValue);
+
+                    if (i == calculatorHeader.getLeaseTimes()) {
+                        line.setPrincipal(oustandingPrincipal - calculatorHeader.getBalloon());
+                        line.setInterest((double) Math.round((line.getRental() - line.getPrincipal()) * 100) / 100);
+                    } else {
+                        line.setInterest(eachInterest);
+                        line.setPrincipal((double) Math.round((line.getRental() - line.getInterest()) * 100) / 100);
+                    }
+                } else if (CommonConstUtil.EQUAL_PRINCIPAL.equalsIgnoreCase(calcType)) {
+                    //等额本金
+                    eachInterest = (double) Math.round(oustandingPrincipal * 100 * rate) / 100;
+
+                    if (i == calculatorHeader.getLeaseTimes()) {
+                        line.setPrincipal(oustandingPrincipal - calculatorHeader.getBalloon());
+                        line.setInterest((double) Math.round((line.getRental() - line.getPrincipal()) * 100) / 100);
+                    } else {
+                        line.setInterest(eachInterest);
+                        line.setPrincipal((double) Math.round((line.getRental() - line.getInterest()) * 100) / 100);
+                    }
+                } else if (CommonConstUtil.EQUAL_INTEREST.equalsIgnoreCase(calcType) || CommonConstUtil.FREE_CASHFLOW.equalsIgnoreCase(calcType)) {
+                    //平息法
+                    double financeValue = financeAmount - calculatorHeader.getBalloon();
+                    double eachPrincipal = (double) Math.round(financeValue * 100 / calculatorHeader.getLeaseTimes()) / 100;
+                    if (backflowCycle == 0) {
+                        if (i == calculatorHeader.getLeaseTimes()) {
+                            eachPrincipal = (double) Math.round((oustandingPrincipal - calculatorHeader.getBalloon()) * 100) / 100;
+                        }
+                    } else {
+                        if (i % backflowCycle == 0) {
+                            if (i != calculatorHeader.getLeaseTimes()) {
+                                eachPrincipal = (double) Math.round(financeValue * 100 / Math.ceil(calculatorHeader.getLeaseTimes() / backflowCycle)) / 100;
+                            } else {
+                                eachPrincipal = (double) Math.round((oustandingPrincipal - calculatorHeader.getBalloon()) * 100) / 100;
+                            }
+                        } else {
+                            if (i != calculatorHeader.getLeaseTimes()) {
+                                eachPrincipal = 0;
+                            } else {
+                                eachPrincipal = (double) Math.round((oustandingPrincipal - calculatorHeader.getBalloon()) * 100) / 100;
+                            }
+                        }
+                    }
+
+                    line.setPrincipal(eachPrincipal);
+                    line.setInterest((double) Math.round((line.getRental() - line.getPrincipal()) * 100) / 100);
+                } else if (CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)) {
+                    //计算计息天数
+                    leaseDays = (int) DAYS.between(lastLine.getDueDate(), dueDate);
+                    eachInterest = (double) Math.round(financeAmount * calculatorHeader.getIntRate() * leaseDays * 100 / calculatorHeader.getCalculateDays()) / 100;
+
+                    if (i == calculatorHeader.getLeaseTimes()) {
+                        line.setPrincipal((double) Math.round((oustandingPrincipal - calculatorHeader.getBalloon()) * 100) / 100);
+                        line.setInterest((double) Math.round((line.getRental() - line.getPrincipal()) * 100) / 100);
+                    } else {
+                        line.setInterest(eachInterest);
+                        line.setPrincipal((double) Math.round((line.getRental() - line.getInterest()) * 100) / 100);
+                    }
+                }
+            } else {
+                //如果是先息后本需重算利息
+                if (CommonConstUtil.APPEASE.equalsIgnoreCase(calcType)) {
+                    //计算计息天数
+                    leaseDays = (int) DAYS.between(lastLine.getDueDate(), dueDate);
+                    eachInterest = (double) Math.round(financeAmount * calculatorHeader.getIntRate() * leaseDays * 100 / calculatorHeader.getCalculateDays()) / 100;
+
+                    if (i == calculatorHeader.getLeaseTimes()) {
+                        line.setPrincipal((double) Math.round((oustandingPrincipal - calculatorHeader.getBalloon()) * 100) / 100);
+                        line.setInterest(eachInterest);
+                        line.setRental(line.getPrincipal() + line.getInterest());
+                    } else {
+                        line.setInterest(eachInterest);
+                        line.setRental(line.getPrincipal() + line.getInterest());
+                    }
+                }
             }
 
             //项目期总余额
@@ -522,11 +656,11 @@ public class Computer {
 
             //末期处理
             if (i == calculatorHeader.getLeaseTimes()) {
-                line.setCashflowIrr(line.getRental() + line.getBalloon() + line.getResidualValue() - line.getDeposit());
+                line.setCashflowIrr(line.getRental() + line.getBalloon() + line.getResidualValue() + line.getDeposit());
                 //回写结束日期
                 calculatorHeader.setLeaseEndDate(line.getDueDate());
             } else {
-                line.setCashflowIrr(line.getRental());
+                line.setCashflowIrr(line.getRental() + line.getLeaseCharge() + line.getDeposit() + line.getOtherFee() + line.getOtherFee2() + line.getOtherFee3());
             }
 
             //处理利息税额

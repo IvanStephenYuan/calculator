@@ -138,7 +138,7 @@ public class IRR {
         }
     }
 
-    public double computeRealIrr(double financeAmount, double balloon, int leaseTimes) {
+    public double computeRealIrr(int leaseTimes) {
         //根据现金流封装实际数组
         List<CalculatorLine> cashflowLists = new ArrayList<CalculatorLine>();
         int time = 0;
@@ -148,20 +148,15 @@ public class IRR {
         CalculatorLine zeroLine = new CalculatorLine();
         zeroLine.setTimes(time);
         zeroLine.setDueDate(this.lines.get(0).getDueDate());
-        zeroLine.setCashflowIrr(-1 * financeAmount);
+        zeroLine.setCashflowIrr(lines.get(0).getCashflowIrr());
         cashflowLists.add(zeroLine);
         time += 1;
 
         //循环期数，在相邻期数间，插入现金流量为0
         for (int i = 1; i <= leaseTimes; i++) {
             LocalDate currentDate = this.lines.get(i).getDueDate();
-            double currentRental = this.lines.get(i).getRental();
             LocalDate lastDate = cashflowLists.get(time - 1).getDueDate();
             LocalDate dueDate = lastDate;
-
-            if(i == 1){
-                dueDate = dueDate.plusDays(-1);
-            }
 
             //处理间隔期
             while (dueDate.until(currentDate, ChronoUnit.MONTHS) > 1) {
@@ -180,7 +175,7 @@ public class IRR {
                 CalculatorLine record = new CalculatorLine();
                 record.setTimes(time);
                 record.setDueDate(currentDate);
-                record.setCashflowIrr(currentRental + balloon);
+                record.setCashflowIrr(lines.get(i).getCashflowIrr());
                 cashflowLists.add(record);
 
                 time += 1;

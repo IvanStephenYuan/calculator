@@ -100,6 +100,10 @@ public class CalculatorLine {
     @ApiModelProperty(value = "首付款")
     private double downPayment;
 
+    @Column(name = "pre_interest", columnDefinition = "decimal(12,2) comment '租前息'")
+    @ApiModelProperty(value = "租前息")
+    private double preInterest;
+
     @Column(name = "lease_charge", columnDefinition = "decimal(12,2) comment '咨询费'")
     @ApiModelProperty(value = "咨询费")
     private double leaseCharge;

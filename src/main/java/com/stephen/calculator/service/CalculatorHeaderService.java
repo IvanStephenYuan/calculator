@@ -33,7 +33,7 @@ public class CalculatorHeaderService {
     private boolean checkCalculatorHeader(CalculatorHeader calculatorHeader) {
         //组成报价至少需要租赁物价款、利率、支付频率、期数、税率、租赁开始日
         if (calculatorHeader.getLeaseAmount() == 0 || calculatorHeader.getIntRate() < 0 ||
-                calculatorHeader.getAnnualPayTimes() == 0 || calculatorHeader.getLeaseTimes() == 0 ||
+                calculatorHeader.getAnnualPayTimes() < 0 || calculatorHeader.getLeaseTimes() < 0 ||
                 calculatorHeader.getVatRate() < 0 || calculatorHeader.getLeaseStartDate() == null) {
             return false;
         }
@@ -50,32 +50,37 @@ public class CalculatorHeaderService {
         CalculatorLine firstLine = lines.get(0);
         CalculatorLine lastLine = new CalculatorLine();
 
-        //期数不对
-        if (lines.size() != calculatorHeader.getLeaseTimes() + 1) {
-            return false;
-        } else {
-            lastLine = lines.get(calculatorHeader.getLeaseTimes());
-        }
-
-        //头行金额不对
-        if (firstLine.getDownPayment() != calculatorHeader.getDownPayment() || firstLine.getDeposit() != calculatorHeader.getDeposit()
-                || lastLine.getBalloon() != calculatorHeader.getBalloon() || lastLine.getResidualValue() != calculatorHeader.getResidualValue()) {
-            return false;
-        }
-
         //本金不对
         double totalPrincial = firstLine.getDownPayment() + lastLine.getBalloon();
         for (int i = 1; i < lines.size(); i++) {
             CalculatorLine line = lines.get(i);
-            double rent = (double) Math.round((line.getPrincipal() + line.getInterest())*100)/100;
+            /*double rent = (double) Math.round((line.getPrincipal() + line.getInterest())*100)/100;
             if(rent != line.getRental()){
                 return false;
-            }
+            }*/
             totalPrincial += line.getPrincipal();
         }
         totalPrincial = (double) Math.round(totalPrincial * 100) / 100;
-        if (totalPrincial != calculatorHeader.getLeaseAmount()) {
-            return false;
+
+        if(totalPrincial == 0){
+
+        }else{
+            if (totalPrincial != calculatorHeader.getLeaseAmount()) {
+                return false;
+            }
+
+            //期数不对
+            if (lines.size() != calculatorHeader.getLeaseTimes() + 1) {
+                return false;
+            } else {
+                lastLine = lines.get(calculatorHeader.getLeaseTimes());
+            }
+
+            //头行金额不对
+            if (firstLine.getDownPayment() != calculatorHeader.getDownPayment() || firstLine.getDeposit() != calculatorHeader.getDeposit()
+                    || lastLine.getBalloon() != calculatorHeader.getBalloon() || lastLine.getResidualValue() != calculatorHeader.getResidualValue()) {
+                return false;
+            }
         }
 
         return true;

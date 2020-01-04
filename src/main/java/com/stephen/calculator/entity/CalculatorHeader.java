@@ -127,6 +127,10 @@ public class CalculatorHeader {
     @ApiModelProperty(value = "首付款")
     private double downPayment;
 
+    @Column(name = "pre_interest", columnDefinition = "decimal(12,2) comment '租前息'")
+    @ApiModelProperty(value = "租前息")
+    private double preInterest;
+
     @Column(name = "contract_amount", columnDefinition = "decimal(12,2) comment '合同总额'")
     @ApiModelProperty(value = "合同总额")
     private double contractAmount;
