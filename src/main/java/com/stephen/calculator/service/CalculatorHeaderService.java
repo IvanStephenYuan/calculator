@@ -39,7 +39,7 @@ public class CalculatorHeaderService {
         }
 
         //先付后付不能为空
-        if("".equalsIgnoreCase(calculatorHeader.getPayType())){
+        if ("".equalsIgnoreCase(calculatorHeader.getPayType())) {
             return false;
         }
 
@@ -62,9 +62,9 @@ public class CalculatorHeaderService {
         }
         totalPrincial = (double) Math.round(totalPrincial * 100) / 100;
 
-        if(totalPrincial == 0){
+        if (totalPrincial == 0) {
 
-        }else{
+        } else {
             if (totalPrincial != calculatorHeader.getLeaseAmount()) {
                 return false;
             }

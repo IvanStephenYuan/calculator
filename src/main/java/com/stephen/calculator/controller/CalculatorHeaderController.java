@@ -39,19 +39,19 @@ public class CalculatorHeaderController {
 
     @PostMapping(value = "/compute")
     @ApiOperation(value = "计算", notes = "自动保存后计算")
-    public ResponseData computeProduct(@RequestBody RequestData request){
+    public ResponseData computeProduct(@RequestBody RequestData request) {
         CalculatorHeader calculatorHeader = request.getHeader();
         ResponseData responseData = new ResponseData();
         PriceList priceList = null;
 
         //基础校验
-        if("".equalsIgnoreCase(calculatorHeader.getPriceList())){
+        if ("".equalsIgnoreCase(calculatorHeader.getPriceList())) {
             responseData.setResponseCode(CommonConstUtil.RESPONSE_ERROR);
             responseData.setResponseMessage("请求错误，产品不能为空");
             return responseData;
-        }else{
+        } else {
             priceList = priceListService.getPriceList(calculatorHeader.getPriceList());
-            if(CommonConstUtil.NO.equalsIgnoreCase(priceList.getEnabledFlag())){
+            if (CommonConstUtil.NO.equalsIgnoreCase(priceList.getEnabledFlag())) {
                 responseData.setResponseCode(CommonConstUtil.RESPONSE_ERROR);
                 responseData.setResponseMessage("请求错误，产品被禁用");
                 return responseData;
@@ -70,7 +70,7 @@ public class CalculatorHeaderController {
 
     @PostMapping(value = "/recompute")
     @ApiOperation(value = "重算", notes = "根据行表重选")
-    public ResponseData recomputeProduct(@RequestBody RequestData request){
+    public ResponseData recomputeProduct(@RequestBody RequestData request) {
         CalculatorHeader header = request.getHeader();
         List<CalculatorLine> lines = request.getLines();
 
@@ -80,21 +80,21 @@ public class CalculatorHeaderController {
         PriceList priceList = null;
 
         //基础校验
-        if("".equalsIgnoreCase(header.getPriceList())){
+        if ("".equalsIgnoreCase(header.getPriceList())) {
             responseData.setResponseCode(CommonConstUtil.RESPONSE_ERROR);
             responseData.setResponseMessage("请求错误，产品不能为空");
             return responseData;
-        }else{
+        } else {
             priceList = priceListService.getPriceList(header.getPriceList());
-            if(CommonConstUtil.NO.equalsIgnoreCase(priceList.getEnabledFlag())){
+            if (CommonConstUtil.NO.equalsIgnoreCase(priceList.getEnabledFlag())) {
                 responseData.setResponseCode(CommonConstUtil.RESPONSE_ERROR);
                 responseData.setResponseMessage("请求错误，产品被禁用");
                 return responseData;
             }
         }
 
-        for(CalculatorLine line : lines){
-            if(line.getHeaderId() != headerId){
+        for (CalculatorLine line : lines) {
+            if (line.getHeaderId() != headerId) {
                 responseData.setResponseCode(CommonConstUtil.RESPONSE_ERROR);
                 responseData.setResponseMessage("请求参数错误，头行关系不一致");
                 return responseData;

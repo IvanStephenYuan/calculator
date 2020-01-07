@@ -15,6 +15,7 @@ import java.util.List;
 public interface CalculatorLineRepository extends JpaRepository<CalculatorLine, Long> {
     /**
      * 根据头表ID获取报价行信息
+     *
      * @param headerId
      * @return
      */
@@ -22,6 +23,7 @@ public interface CalculatorLineRepository extends JpaRepository<CalculatorLine, 
 
     /**
      * 根据头表ID删除报价行信息
+     *
      * @param headerId
      */
     public void deleteAllByHeaderId(Long headerId);

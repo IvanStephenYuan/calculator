@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @ComponentScan({"com.stephen.config.controller"})
-public class WebMvcConfig implements WebMvcConfigurer{
+public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //swagger-ui

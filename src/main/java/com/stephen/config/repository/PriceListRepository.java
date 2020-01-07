@@ -15,6 +15,7 @@ import java.util.List;
 public interface PriceListRepository extends JpaRepository<PriceList, String> {
     /**
      * 根据产品名获取产品信息
+     *
      * @param priceList
      * @param enabledFlag
      * @return

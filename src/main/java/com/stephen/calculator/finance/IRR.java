@@ -171,7 +171,7 @@ public class IRR {
             }
 
             //处理当期
-            if(dueDate.compareTo(currentDate) <= 0){
+            if (dueDate.compareTo(currentDate) <= 0) {
                 CalculatorLine record = new CalculatorLine();
                 record.setTimes(time);
                 record.setDueDate(currentDate);
@@ -183,12 +183,12 @@ public class IRR {
         }
 
         cashflowLists.forEach(item -> {
-            System.out.println("第" + item.getTimes() + "期"+ item.getDueDate() +"，现金流量：" + item.getCashflowIrr());
+            System.out.println("第" + item.getTimes() + "期" + item.getDueDate() + "，现金流量：" + item.getCashflowIrr());
         });
 
         IRR realIrr = new IRR(cashflowLists);
         double result = realIrr.compute();
-        if(result == Double.NaN){
+        if (result == Double.NaN) {
             result = 0.0D;
         }
         irr = result * 12;

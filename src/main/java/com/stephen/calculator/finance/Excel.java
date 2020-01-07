@@ -23,12 +23,12 @@ public class Excel {
         double powRate = Math.pow(1 + monthRate, nper);
         BigDecimal monthIncome = BigDecimal.valueOf(0);
 
-        if(monthRate != 0){
+        if (monthRate != 0) {
             monthIncome = BigDecimal.valueOf(pv)
                     .multiply(BigDecimal.valueOf(monthRate * powRate))
                     .divide(BigDecimal.valueOf(powRate - 1), 6, BigDecimal.ROUND_HALF_UP);
             monthIncome = monthIncome.setScale(2, BigDecimal.ROUND_HALF_UP);
-        }else{
+        } else {
             monthIncome = BigDecimal.valueOf(pv).divide(BigDecimal.valueOf(nper));
             monthIncome = monthIncome.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
@@ -47,11 +47,11 @@ public class Excel {
      */
     public static double ipmt(double rate, int per, int nper, double pv) {
         double monthRate = rate;
-        double perRate = Math.pow(1 + monthRate, per-1);
+        double perRate = Math.pow(1 + monthRate, per - 1);
         double nperRate = Math.pow(1 + monthRate, nper);
         BigDecimal monthInterest = BigDecimal.valueOf(0);
 
-        if(monthRate != 0){
+        if (monthRate != 0) {
             BigDecimal multiply = BigDecimal.valueOf(pv).multiply(BigDecimal.valueOf(monthRate));
             BigDecimal sub = BigDecimal.valueOf(nperRate).subtract(BigDecimal.valueOf(perRate));
             monthInterest = multiply.multiply(sub).divide(BigDecimal.valueOf(nperRate - 1), 6, BigDecimal.ROUND_HALF_UP);
@@ -61,7 +61,7 @@ public class Excel {
         return monthInterest.doubleValue();
     }
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
         double rental = Excel.pmt(0, 6, 50000000);
         System.out.println("月供为：" + rental);
 
@@ -69,6 +69,6 @@ public class Excel {
         System.out.println("利息为：" + interest);
 
         int i = 3;
-        System.out.println("余值：" + i%0);
+        System.out.println("余值：" + i % 0);
     }
 }

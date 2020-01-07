@@ -15,6 +15,7 @@ import java.util.List;
 public interface PriceListConfigRepository extends JpaRepository<PriceListConfig, Long> {
     /**
      * 通过产品名获取配置明细
+     *
      * @param priceList
      * @param enabledFlag
      * @return
@@ -23,6 +24,7 @@ public interface PriceListConfigRepository extends JpaRepository<PriceListConfig
 
     /**
      * 通过产品名获取明细配置
+     *
      * @param priceList
      * @return
      */

@@ -21,6 +21,7 @@ import java.util.List;
 public interface IPriceListService {
     /**
      * 更新操作
+     *
      * @param priceList
      * @return
      */
@@ -28,6 +29,7 @@ public interface IPriceListService {
 
     /**
      * 通过产品名获取有效产品
+     *
      * @param priceList
      * @return
      */
@@ -35,12 +37,14 @@ public interface IPriceListService {
 
     /**
      * 获取所有产品
+     *
      * @return
      */
     public List<PriceList> getPriceList();
 
     /**
      * 通过产品名获取产品
+     *
      * @param priceList
      * @return
      */
@@ -48,6 +52,7 @@ public interface IPriceListService {
 
     /**
      * 删除产品
+     *
      * @param priceList
      */
     public void deletePriceList(String priceList);

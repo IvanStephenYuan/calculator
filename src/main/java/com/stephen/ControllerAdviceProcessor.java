@@ -20,12 +20,12 @@ import java.nio.file.AccessDeniedException;
  * @date 2019/10/28 17:01
  **/
 @ControllerAdvice
-public class ControllerAdviceProcessor{
+public class ControllerAdviceProcessor {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public ResponseData handleException(HttpServletRequest request, Exception exception){
+    public ResponseData handleException(HttpServletRequest request, Exception exception) {
         String code = CommonConstUtil.UNKNOWN_ERROR;
         String description = null;
 

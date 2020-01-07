@@ -23,13 +23,13 @@ public class PriceListConfigController {
 
     @PostMapping(value = "/save")
     @ApiOperation(value = "保存", notes = "新建和更新")
-    public List<PriceListConfig> savePriceList(@RequestBody List<PriceListConfig> priceListConfigs){
+    public List<PriceListConfig> savePriceList(@RequestBody List<PriceListConfig> priceListConfigs) {
         return priceListConfigService.batchUpdate(priceListConfigs);
     }
 
     @GetMapping(value = "/getAll")
     @ApiOperation(value = "通过价目代码获取明细配置信息", notes = "查询")
-    public List<PriceListConfig> getPriceList(@RequestParam String priceList){
+    public List<PriceListConfig> getPriceList(@RequestParam String priceList) {
         return priceListConfigService.getPriceListConfigs(priceList);
     }
 }

@@ -14,7 +14,7 @@ import javax.persistence.*;
 @Entity
 @Data
 @ApiModel(description = "产品明细配置")
-@Table(name = "cls_price_list_config", indexes = {@Index(name = "cls_price_list_config_n1",  columnList="price_list")})
+@Table(name = "cls_price_list_config", indexes = {@Index(name = "cls_price_list_config_n1", columnList = "price_list")})
 @org.hibernate.annotations.Table(appliesTo = "cls_price_list_config", comment = "产品明细配置")
 public class PriceListConfig {
     @Id

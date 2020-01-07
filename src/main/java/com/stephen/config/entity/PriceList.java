@@ -17,10 +17,10 @@ import java.io.Serializable;
 @Entity
 @Data
 @ApiModel(description = "产品表")
-@Table(name = "cls_price_list", indexes = {@Index(name = "cls_price_list_n1",  columnList="price_list", unique = true)})
+@Table(name = "cls_price_list", indexes = {@Index(name = "cls_price_list_n1", columnList = "price_list", unique = true)})
 @org.hibernate.annotations.Table(appliesTo = "cls_price_list", comment = "产品表")
 @Proxy(lazy = false)
-public class PriceList implements Serializable{
+public class PriceList implements Serializable {
     private static final long serialVersionUID = 7207974328030155273L;
 
     @Id
@@ -40,7 +40,7 @@ public class PriceList implements Serializable{
     private int orderSeq;
 
     @Column(name = "calc_type")
-    private  String calcType;
+    private String calcType;
 
     @Column(name = "inter_irr", columnDefinition = "decimal comment '内部收益率'")
     private Double interIrr;

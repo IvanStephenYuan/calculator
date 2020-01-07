@@ -15,14 +15,14 @@ import java.time.LocalDate;
 @Entity
 @Data
 @ApiModel(description = "报价器行表")
-@Table(name = "cls_fin_calculator_ln", indexes = {@Index(name = "cls_fin_calculator_ln_n1",  columnList="header_id", unique = false)})
+@Table(name = "cls_fin_calculator_ln", indexes = {@Index(name = "cls_fin_calculator_ln_n1", columnList = "header_id", unique = false)})
 @org.hibernate.annotations.Table(appliesTo = "cls_fin_calculator_ln", comment = "报价行表")
 public class CalculatorLine {
-    public CalculatorLine(){
+    public CalculatorLine() {
 
     }
 
-    public CalculatorLine(LocalDate dueDate, int interestPeriodDays, double cashflowIrr){
+    public CalculatorLine(LocalDate dueDate, int interestPeriodDays, double cashflowIrr) {
         this.dueDate = dueDate;
         this.interestPeriodDays = interestPeriodDays;
         this.cashflowIrr = cashflowIrr;

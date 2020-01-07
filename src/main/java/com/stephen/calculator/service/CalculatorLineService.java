@@ -24,14 +24,15 @@ public class CalculatorLineService {
 
     /**
      * 获取报价行信息
+     *
      * @param headerId
      * @return
      */
-    public List<CalculatorLine> getCalculatorLines(Long headerId){
+    public List<CalculatorLine> getCalculatorLines(Long headerId) {
         CalculatorHeader header = calculatorHeaderRepository.getOne(headerId);
-        if(header != null){
+        if (header != null) {
             return calculatorLineRepository.findAllByHeaderId(headerId);
-        }else{
+        } else {
             return null;
         }
     }

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 //@EnableCaching
 @EnableTransactionManagement
 public class CalculatorApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(CalculatorApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CalculatorApplication.class, args);
+    }
 }

@@ -15,14 +15,14 @@ import java.time.LocalDate;
 @Entity
 @Data
 @ApiModel(description = "报价器头表")
-@Table(name = "cls_fin_calculator_hd", indexes = {@Index(name = "cls_fin_calculator_hd_n1",  columnList="price_list")})
+@Table(name = "cls_fin_calculator_hd", indexes = {@Index(name = "cls_fin_calculator_hd_n1", columnList = "price_list")})
 @org.hibernate.annotations.Table(appliesTo = "cls_fin_calculator_hd", comment = "报价头表")
 public class CalculatorHeader {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "header_id")
     private long headerId;
-    
+
     @Column(name = "price_list", columnDefinition = "varchar(60) comment '价目表代码'")
     @ApiModelProperty(value = "产品名称")
     private String priceList;

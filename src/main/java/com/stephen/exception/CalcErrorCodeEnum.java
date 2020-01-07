@@ -28,16 +28,17 @@ public enum CalcErrorCodeEnum implements ErrorCode {
 
     /**
      * 构造器
-     * @param code 错误码
+     *
+     * @param code        错误码
      * @param description 描述
      */
-    private CalcErrorCodeEnum(final String code, final String description){
+    private CalcErrorCodeEnum(final String code, final String description) {
         this.code = code;
         this.description = description;
     }
 
-    public static CalcErrorCodeEnum getByCode(String code){
-        for(CalcErrorCodeEnum value : CalcErrorCodeEnum.values()){
+    public static CalcErrorCodeEnum getByCode(String code) {
+        for (CalcErrorCodeEnum value : CalcErrorCodeEnum.values()) {
             if (StringUtils.equals(code, value.getCode())) {
                 return value;
             }
@@ -47,16 +48,17 @@ public enum CalcErrorCodeEnum implements ErrorCode {
 
     /**
      * 枚举是否包含此code
+     *
      * @param code 枚举code
      * @return 结果
      */
-    public static Boolean contains(String code){
+    public static Boolean contains(String code) {
         for (CalcErrorCodeEnum value : CalcErrorCodeEnum.values()) {
             if (StringUtils.equals(code, value.getCode())) {
                 return true;
             }
         }
-        return  false;
+        return false;
     }
 
     @Override

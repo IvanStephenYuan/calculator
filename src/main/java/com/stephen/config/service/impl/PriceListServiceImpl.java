@@ -30,47 +30,51 @@ public class PriceListServiceImpl implements IPriceListService {
 
     /**
      * 更新操作
+     *
      * @param priceList
      * @return
      */
     @Override
-    public PriceList batchUpdate(PriceList priceList){
-        if(!"".equalsIgnoreCase(priceList.getPriceList())){
+    public PriceList batchUpdate(PriceList priceList) {
+        if (!"".equalsIgnoreCase(priceList.getPriceList())) {
             return priceListRepository.save(priceList);
-        }else{
+        } else {
             return null;
         }
     }
 
     /**
      * 通过产品名获取有效产品
+     *
      * @param priceList
      * @return
      */
     @Override
-    public List<PriceList> getPriceList(String priceList, String enabledFlag){
+    public List<PriceList> getPriceList(String priceList, String enabledFlag) {
         List<PriceList> priceLists = priceListRepository.findByPriceListAndEnabledFlag(priceList, enabledFlag);
         return priceLists;
     }
 
     /**
      * 获取所有产品
+     *
      * @return
      */
     @Override
-    public List<PriceList> getPriceList(){
+    public List<PriceList> getPriceList() {
         List<PriceList> priceLists = priceListRepository.findAll();
         return priceLists;
     }
 
     /**
      * 通过产品名获取产品
+     *
      * @param priceList
      * @return
      */
     @Override
     //@Cacheable(value = "priceList", key = "#priceList", condition = "#priceList.contentEquals(\"TEST\")")
-    public PriceList getPriceList(String priceList){
+    public PriceList getPriceList(String priceList) {
         /*ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         valueOperations.set("keyOb", String.valueOf(Math.random()), 60);
         String value = valueOperations.get("keyOb");
@@ -82,11 +86,12 @@ public class PriceListServiceImpl implements IPriceListService {
 
     /**
      * 删除产品
+     *
      * @param priceList
      */
     @Override
     //@CacheEvict(value = "priceList")
-    public void deletePriceList(String priceList){
+    public void deletePriceList(String priceList) {
         System.out.println("从数据库删除：" + priceList);
         priceListRepository.deleteById(priceList);
     }
